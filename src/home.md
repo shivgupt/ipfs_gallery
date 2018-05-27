@@ -9,3 +9,4 @@ Hi! This is my toy project with an aim to
 The contents of this blog as well as the direction in which this project is going would change very frequently but none of the contents would be lost - Big Thanks to IPFS - and can always be accessible via the hash of the contents.
 
 [My First Post](http://localhost:8080/ipns/blog.shivgupt.com/FirstPost.html)
+[Videos](http://localhost:8080/ipns/videos.shivgupt.com/videos.html)
