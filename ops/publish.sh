@@ -19,4 +19,6 @@ done
 
 latest_hash=`ipfs add -r posts/ | tail -n 1 | cut -d " " -f 2`
 
-ipfs name publish --key=${key} /ipfs/$latest_hash
+ipfs name publish --key=blog /ipfs/$latest_hash
+
+ipfs name publish --key=videos /ipfs/`ipfs add -r Videos/ | tail -n 1 | cut -d " " -f 2`
