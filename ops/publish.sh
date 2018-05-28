@@ -1,6 +1,6 @@
 #!/bin/bash
 
-key="videos"
+service='ipfs_daemon'
 
 # Publish Dancce Videos and add links to files
 
@@ -17,8 +17,10 @@ do
     pandoc -s -f markdown -t html -o posts/$name.html $file
 done
 
-latest_hash=`ipfs add -r posts/ | tail -n 1 | cut -d " " -f 2`
+daemon=`docker inspect --format '{{.Status.ContainerStatus.ContainerID}}' $(docker service ps -q $service | head -n1)`
 
-ipfs name publish --key=blog /ipfs/$latest_hash
+echo "Found daemon $daemon"
 
-ipfs name publish --key=videos /ipfs/`ipfs add -r Videos/ | tail -n 1 | cut -d " " -f 2`
+docker exec -it $daemon sh -c 'ipfs name publish --key=blog /ipfs/`ipfs add -r /tmp/posts/ | tail -n 1 | cut -d " " -f 2`'
+
+docker exec -it $daemon sh -c 'ipfs name publish --key=videos /ipfs/`ipfs add -r /tmp/Videos/ | tail -n 1 | cut -d " " -f 2`'
