@@ -1,26 +1,25 @@
 #!/bin/bash
 
 service='ipfs_daemon'
-
-# Publish Dancce Videos and add links to files
-
-
-# Delete all old files from posts
-rm posts/*
-
-# Convert .md files to .html files
-for file in src/*
-do
-    name=`basename $file .md`
-    echo Creating $name.html
-    echo "pandoc -s -f markdown -t html -o posts$name.html $file"
-    pandoc -s -f markdown -t html -o posts/$name.html $file
-done
+category='videos'
+index="$HOME/ipfs/$category/index.html"
+touch $index
 
 daemon=`docker inspect --format '{{.Status.ContainerStatus.ContainerID}}' $(docker service ps -q $service | head -n1)`
 
 echo "Found daemon $daemon"
 
-docker exec -it $daemon sh -c 'ipfs name publish --key=blog /ipfs/`ipfs add -r /tmp/posts/ | tail -n 1 | cut -d " " -f 2`'
+if [[ -z "`ipfs key list | grep $category`" ]]; then ipfs key gen --type=rsa --size=2048 $category; fi
 
-docker exec -it $daemon sh -c 'ipfs name publish --key=videos /ipfs/`ipfs add -r /tmp/Videos/ | tail -n 1 | cut -d " " -f 2`'
+for dir in "$@"
+do
+    hash=`docker exec -it $daemon sh -c "ipfs add -r -q /ipfs/$category/$dir | tail -n 1 | tr -d '\n\r'"`
+    if [[ -z "`cat $index | grep $hash`" ]]
+    then
+        echo '<a href="https://gateway.ipfs.io/ipfs/'"$hash"'">'"$dir"'</a> '"$hash" >> $index
+        echo "Added $dir $hash"
+    fi
+done
+
+echo 'Publishing... '
+docker exec -it $daemon sh -c 'ipfs name publish --key='"$category"' /ipfs/`ipfs add -q /ipfs/'"$category"'/index.html | tail -n 1`'
